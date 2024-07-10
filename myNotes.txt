@@ -1,0 +1,7 @@
+copied from medium : "Pagination, also known as paging, divides a document into distinct pages,
+                      whether electronic or printed. This crucial technique enhances web application speed,
+                      user experience, and resource efficiency. By breaking content into manageable sections,
+                      pagination facilitates faster loading, smoother navigation, and bandwidth conservation.
+                      It optimizes server performance, aids in SEO, and is essential for scalability, ensuring
+                      effective management of large datasets."
+
