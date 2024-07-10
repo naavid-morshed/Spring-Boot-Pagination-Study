@@ -7,9 +7,9 @@ import com.example.paginationprac.repositories.ProductRepo;
 import com.example.paginationprac.services.ProductService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -32,6 +32,7 @@ public class ProductServiceImpl implements ProductService {
 //        productRepo.saveAll(productList);
 //    }
 
+    @Override
     public List<ProductResponse> getAllProducts() {
         return productRepo.findAll()
                 .stream()
@@ -39,6 +40,7 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public Optional<ProductResponse> findById(Long id) {
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -46,12 +48,37 @@ public class ProductServiceImpl implements ProductService {
         return of(product).map(ProductResponse::fromProduct);
     }
 
+    @Override
+    public List<ProductResponse> findByFieldWithSorting(String field) {
+        return productRepo.findAll(Sort.by(field)).stream()
+                .map(ProductResponse::fromProduct)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductResponse> findByFieldWithSortingAscending(String field) {
+        return productRepo.findAll(Sort.by(Sort.Direction.ASC, field))
+                .stream()
+                .map(ProductResponse::fromProduct)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductResponse> findByFieldWithSortingDescending(String field) {
+        return productRepo.findAll(Sort.by(Sort.Direction.DESC, field))
+                .stream()
+                .map(ProductResponse::fromProduct)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<ProductResponse> createProduct(ProductRequest productRequest) {
         return of(new Product(productRequest))
                 .map(productRepo::save)
                 .map(ProductResponse::fromProduct);
     }
 
+    @Override
     public Optional<ProductResponse> updateProduct(ProductResponse productResponse) {
         return productRepo.findById(productResponse.id())
                 .map((Product product) -> {
@@ -64,6 +91,7 @@ public class ProductServiceImpl implements ProductService {
                 .map(ProductResponse::fromProduct);
     }
 
+    @Override
     public Long deleteProductById(Long id) {
         return productRepo.findById(id)
                 .map((Product product) -> {
@@ -72,5 +100,6 @@ public class ProductServiceImpl implements ProductService {
                     return product.getId();
                 })
                 .orElse(-1L);
+//                .orElseThrow(() -> new RuntimeException("Product of ID : " + id + " Not Found. "));
     }
 }
