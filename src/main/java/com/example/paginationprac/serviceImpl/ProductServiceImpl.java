@@ -7,6 +7,10 @@ import com.example.paginationprac.repositories.ProductRepo;
 import com.example.paginationprac.services.ProductService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -48,16 +52,9 @@ public class ProductServiceImpl implements ProductService {
         return of(product).map(ProductResponse::fromProduct);
     }
 
-    @Override
+    @Override // default is ascending
     public List<ProductResponse> findByFieldWithSorting(String field) {
-        return productRepo.findAll(Sort.by(field)).stream()
-                .map(ProductResponse::fromProduct)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ProductResponse> findByFieldWithSortingAscending(String field) {
-        return productRepo.findAll(Sort.by(Sort.Direction.ASC, field))
+        return productRepo.findAll(Sort.by(field))
                 .stream()
                 .map(ProductResponse::fromProduct)
                 .collect(Collectors.toList());
@@ -69,6 +66,52 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(ProductResponse::fromProduct)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    // example: pageSize = 25, offset = 0, means first 25 items, offset = 3 would mean 25 items counting from 51-75
+    public Page<ProductResponse> findProductsWithPagination(int offset, int pageSize) {
+//        Pageable pageable = PageRequest.of(offset, pageSize);
+        return productRepo.findAll(PageRequest.of(offset, pageSize))
+                .map(ProductResponse::fromProduct);
+    }
+
+    @Override
+    public Page<ProductResponse> findProductsWithPaginationAndField(int offset, int pageSize, String field) {
+        Pageable pageable = PageRequest.of(offset, pageSize).withSort(Sort.by(field));
+
+        return productRepo.findAll(pageable)
+                .map(ProductResponse::fromProduct);
+    }
+
+    @Override
+    public Page<ProductResponse> findProductsWithPaginationAndFieldAndDescending(int offset, int pageSize, String field) {
+        Pageable pageable = PageRequest.of(offset, pageSize).withSort(Sort.by(Sort.Direction.DESC, field));
+
+        return productRepo.findAll(pageable)
+                .map(ProductResponse::fromProduct);
+    }
+
+
+    public Page<ProductResponse> combo(Integer offset, Integer pageSize, String field, Boolean ascending) {
+        Pageable pageable;
+        Sort.Direction sortDirection = ascending == null ? Sort.Direction.ASC : ascending ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        if (offset != null && pageSize != null) {
+            if (StringUtils.isNotBlank(field)) {
+                pageable = PageRequest.of(offset, pageSize, sortDirection, field);
+            } else {
+                pageable = PageRequest.of(offset, pageSize, sortDirection);
+            }
+        } else {
+            if (StringUtils.isNotBlank(field)) {
+                pageable = PageRequest.of(0, 10, sortDirection, field);
+            } else {
+                pageable = PageRequest.of(0, 10, sortDirection);
+            }
+        }
+
+        return productRepo.findAll(pageable).map(ProductResponse::fromProduct);
     }
 
     @Override
