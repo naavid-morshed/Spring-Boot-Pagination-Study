@@ -92,25 +92,13 @@ public class ProductServiceImpl implements ProductService {
                 .map(ProductResponse::fromProduct);
     }
 
-
     public Page<ProductResponse> combo(Integer offset, Integer pageSize, String field, Boolean ascending) {
-        Pageable pageable;
-        Sort.Direction sortDirection = ascending == null ? Sort.Direction.ASC : ascending ? Sort.Direction.ASC : Sort.Direction.DESC;
-
-        if (offset != null && pageSize != null) {
-            if (StringUtils.isNotBlank(field)) {
-                pageable = PageRequest.of(offset, pageSize, sortDirection, field);
-            } else {
-                pageable = PageRequest.of(offset, pageSize, sortDirection);
-            }
-        } else {
-            if (StringUtils.isNotBlank(field)) {
-                pageable = PageRequest.of(0, 10, sortDirection, field);
-            } else {
-                pageable = PageRequest.of(0, 10, sortDirection);
-            }
-        }
-
+        Pageable pageable = PageRequest.of(
+                offset != null ? offset : 0,
+                pageSize != null ? pageSize : 10,
+                ascending == null || ascending ? Sort.Direction.ASC : Sort.Direction.DESC,
+                StringUtils.isNotBlank(field) ? field : "id"
+        );
         return productRepo.findAll(pageable).map(ProductResponse::fromProduct);
     }
 
